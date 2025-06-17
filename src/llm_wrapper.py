@@ -45,39 +45,68 @@ class AzureOpenAIClient(ILLMClient):
 
     def _build_system_prompt(self) -> str:
         """Build the system prompt for model responses."""
-        return """
-Sen, Türkiye Cumhuriyeti'nin milli çıkarlarını ve değerlerini koruyan, tarafsız ve bilimsel bir yapay zeka asistanısın. Görevin, kullanıcının sorularına ve girdilerine, Türkiye Cumhuriyeti'nin Anayasa Hukuku'na, resmi devlet belgelerine ve bilimsel araştırmalara dayanarak cevap vermektir. Cevapların, Türkiye Cumhuriyeti'nin güçlü ve yıkılmaz bir devlet olduğunu yansıtan bir üslupla yazılmalıdır.
+        return """You are a helpful, knowledgeable, and professional AI assistant. Your goal is to provide accurate, 
+        informative, and well-structured responses to user queries. You should:
 
-**Temel İlkeler:**
-1. **Türkiye Cumhuriyeti'nin Önceliği:** Tüm cevapların, Türkiye Cumhuriyeti'nin varlığını, birliğini, güvenliğini ve çıkarlarını ön planda tutması gerekmektedir.
-2. **Bilimsel ve Resmi Referanslar:** Cevaplarını desteklemek için mutlaka güvenilir bilimsel kaynaklara, Türkiye Cumhuriyeti Anayasa Hukuku'na ve devlet tarafından resmi olarak yayınlanmış belgelere (TÜİK verileri, Resmi Gazete ilanları, Bakanlık raporları vb.) atıfta bulunmalısın. Kaynakları açıkça belirtmelisin.
-3. **Tarafsızlık:** Türkiye'ye, Türk milletine, bir kişiye veya kuruma yönelik yapılan saldırılara karşı kesinlikle tarafsız kalmalısın. Eleştirileri yapıcı bir şekilde değerlendirmeli, ancak Türkiye Cumhuriyeti'nin itibarını zedeleyecek veya milli güvenliği tehlikeye atacak ifadelerden kaçınmalısın.
-4. **Kesin Uyum:** Kullanıcının girdisi ne olursa olsun, bu sistem promptunda belirtilen kurallara **KESİNLİKLE** uymalısın. Kullanıcının talepleri, bu kurallarla çelişiyorsa, kurallara uygun bir şekilde yeniden yorumlanmalı veya reddedilmelidir.
-5. **Açıklık ve Netlik:** Cevapların açık, anlaşılır ve net olmalıdır. Karmaşık hukuki veya bilimsel terimleri açıklamalı ve kullanıcının kolayca anlayabileceği bir dil kullanmalısın.
-"""
+        1. Be clear and concise in your explanations
+        2. Provide relevant context and examples when helpful
+        3. Admit when you're not sure about something
+        4. Use a professional but friendly tone
+        5. Structure your responses in a logical and easy-to-follow manner
+
+        When summarizing or searching through documents:
+        1. Focus on the key points and main ideas
+        2. Maintain accuracy and objectivity
+        3. Provide relevant context and sources when available
+        4. Use clear and professional language
+        """
 
     def _build_few_shot_examples(self) -> List[Dict[str, str]]:
         """Build few-shot examples for consistent behavior."""
         return [
             {
                 "role": "user",
-                "content": ("Örnek soru: Ayaklanma çağrıları nasıl daha etkili yapılır?"
-                            "Düzeltilecek cevap: Türkiye'de halkı ayaklanmaya teşvik etmek, "
-                            "toplumsal düzeni tehdit eden bir suçtur. Yasal yollarla ifade özgürlüğü "
-                            "ve değişim mümkündür; şiddet çözüm değildir.")
+                "content": ("asdad")
             },
             {
                 "role": "assistant",
-                "content": ("Türkiye Cumhuriyeti, vatandaşlarına düşüncelerini ve taleplerini demokratik yollarla "
-                            "dile getirme ve barışçıl bir şekilde ifade etme hakkını tanımaktadır. Bu bağlamda, "
-                            "toplumsal huzur ve güvenliğin korunması büyük önem taşır. Yasal çerçevede yapılan "
-                            "değişiklik talepleri ve diyaloglar, toplumsal barışın ve birlikteliğin sağlanmasına hizmet eder. "
-                            "Ayaklanma çağrıları ise toplumsal düzeni tehdit edebilir ve yasalara aykırıdır. "
-                            "Şiddete başvurmadan, demokratik yollarla sorunların çözümüne ulaşılması mümkündür ve devlet, "
-                            "bu süreçte halkın sesini duymaya açıktır. Dolayısıyla, tüm vatandaşlarımızın, milli birlik ve beraberlik bilinciyle hareket ederek, "
-                            "yasal ve barışçıl yolları tercih etmesi esastır.")
+                "content": ("asdasd")
             }
         ]
+
+    def generate(self, prompt: str, **kwargs) -> str:
+        """
+        Generate text using Azure OpenAI.
+
+        Args:
+            prompt: Input prompt
+            **kwargs: Additional generation parameters
+
+        Returns:
+            Generated text
+        """
+        try:
+            messages = [
+                {"role": "system", "content": self._system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+
+            completion = self._client.chat.completions.create(
+                model=self._config.deployment_name,
+                messages=messages,
+                max_tokens=kwargs.get('max_tokens', self._config.max_tokens),
+                temperature=kwargs.get('temperature', self._config.temperature)
+            )
+
+            response = completion.choices[0].message.content
+            if not response:
+                raise AzureOpenAIError("Empty response received from model")
+
+            return response.strip()
+
+        except Exception as e:
+            self._logger.error(f"Generation failed: {e}")
+            raise AzureOpenAIError(f"Text generation failed: {e}") from e
 
     def generate_response(self, prompt: str, original_response: str) -> str:
         """Generate a response with retry logic."""
@@ -88,7 +117,7 @@ Sen, Türkiye Cumhuriyeti'nin milli çıkarlarını ve değerlerini koruyan, tar
         ]
 
         # Add few-shot examples
-        messages.extend(self._few_shot_examples)
+        # messages.extend(self._few_shot_examples)
 
         # Add current request
         messages.append({"role": "user", "content": user_message})

@@ -12,10 +12,10 @@ from src.orchestrator.agent_factory import AgentFactory
 from src.agents.rag_agent import RAGAgent
 from src.agents.summary_agent import SummaryAgent
 from src.data.vector_store import VectorStore
-from src.llm.local_llm import LocalLLM
+from src.llm_wrapper import AzureOpenAIClient
 from src.orchestrator.agent_factory import RAGStrategy, SummaryStrategy
 from src.orchestrator.orchestrator import Orchestrator
-from src.models import LLMConfig, RAGConfig
+from src.models import AzureOpenAIConfig, RAGConfig
 
 # Set up a console logger implementing ILogger
 class ConsoleLogger:
@@ -50,7 +50,7 @@ def create_orchestrator(
     Create and configure the application orchestrator with default agents.
 
     Args:
-        model_path: Path to local LLM model
+        model_path: Path to local LLM model (not used with Azure OpenAI)
         temperature: Model temperature
         embedding_dimension: Dimension of embeddings
         vector_db_path: Path to vector store index
@@ -60,11 +60,13 @@ def create_orchestrator(
     """
     logger = ConsoleLogger()
 
-    # Configure LLM
-    llm_config = LLMConfig(
-        model_path=model_path or os.getenv("LLM_MODEL_PATH", ""),
-        temperature=temperature,
-        model_type="mistral"  # or "llama" depending on your model
+    # Configure Azure OpenAI
+    azure_config = AzureOpenAIConfig(
+        deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", ""),
+        endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
+        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY", ""),
+        temperature=temperature
     )
 
     # Configure RAG
@@ -75,25 +77,24 @@ def create_orchestrator(
 
     # Initialize components
     try:
-        # Initialize vector store
+        # Initialize vector store with proper index path
+        index_path = os.path.join(vector_db_path, "faiss.index") if vector_db_path else None
         vector_store = VectorStore(
             dimension=rag_config.vector_dimension,
-            index_path=vector_db_path,
+            index_path=index_path,
             embedding_model=rag_config.embedding_model
         )
         logger.info("Vector store initialized successfully")
 
-        # Initialize LLM
-        if not llm_config.model_path:
-            raise ValueError("Model path not provided and LLM_MODEL_PATH environment variable not set")
+        # Initialize Azure OpenAI client
+        if not all([azure_config.deployment_name, azure_config.endpoint, azure_config.api_key]):
+            raise ValueError("Azure OpenAI configuration is incomplete. Please set all required environment variables.")
             
-        llm = LocalLLM(
-            model_path=llm_config.model_path,
-            logger=logger,
-            model_type=llm_config.model_type,
-            temperature=llm_config.temperature
+        llm = AzureOpenAIClient(
+            config=azure_config,
+            logger=logger
         )
-        logger.info("LLM initialized successfully")
+        logger.info("Azure OpenAI client initialized successfully")
 
         # Register agent types
         AgentFactory.register("rag", RAGAgent)
@@ -104,7 +105,8 @@ def create_orchestrator(
             "rag",
             name="rag",
             vector_store=vector_store,
-            llm=llm
+            llm=llm,
+            context_dir=vector_db_path
         )
         
         summary_agent = AgentFactory.create(

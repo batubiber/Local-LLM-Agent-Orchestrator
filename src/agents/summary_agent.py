@@ -43,4 +43,7 @@ class SummaryAgent(BaseAgent):
         """Generate summary using LLM."""
         prompt = f"Summarize the following text: {request}"
         summary = self._llm.generate(prompt)
-        return {'summary': summary}
+        return {
+            'summary': summary,
+            'response': summary  # Add this for backward compatibility
+        }
