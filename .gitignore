@@ -37,53 +37,25 @@ venv.bak/
 *.swo
 *~
 
-# Project specific
-models/
-*.gguf
-vector_store/
-logs/
-.cache/
-data/
+# Project-specific
 context/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
-
-# Testing
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
 .coverage
 htmlcov/
-.pytest_cache/
-.tox/
-coverage.xml
-*.cover
-.hypothesis/
-
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+build/
 *.egg-info/
-.installed.cfg
-*.egg
 
 # Logs
 *.log
 logs/
 logging/
 
-# OS specific
+# OS
 .DS_Store
 Thumbs.db
 desktop.ini
