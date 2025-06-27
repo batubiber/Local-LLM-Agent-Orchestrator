@@ -4,15 +4,28 @@ A sophisticated **Graph Retrieval-Augmented Generation (GraphRAG)** system that 
 
 ## 🌟 Key Features
 
+### Core GraphRAG Capabilities
 - **Multi-hop Reasoning**: Answer complex questions requiring multiple logical steps
 - **Vector-only Graph Implementation**: Achieve graph capabilities using only Milvus vector database
 - **Azure OpenAI Integration**: Leverage GPT-4 for intelligent triplet extraction and reranking
 - **Semantic Graph Expansion**: Use adjacency matrices for efficient multi-degree graph traversal
 - **LLM-powered Reranking**: Chain-of-thought reasoning for relationship filtering
 - **Comparison Tools**: Built-in comparison with traditional RAG methods
+
+### Multi-Agent Orchestrator (Phase 1)
+- **SummaryAgent**: Generate executive, technical, narrative, bullet-point, and abstract summaries
+- **CodeRAGAgent**: Analyze, debug, optimize, refactor, and review code across multiple languages
+- **WebScrapingAgent**: Extract and analyze content from web pages and articles
+- **Agent Templates**: Standardized framework for creating new specialized agents
+- **REST API**: Full API access to all agents with OpenAPI documentation
+- **Performance Monitoring**: Real-time agent performance tracking and health monitoring
+
+### System Features
 - **Improved Document Processing**: Enhanced PDF and text processing with better chunking and error handling
 - **Comprehensive Logging**: Detailed logging with Rich console output for better debugging
 - **Function-based Triplet Extraction**: Structured triplet extraction using OpenAI's function calling
+- **Agent Factory Pattern**: Scalable agent creation and management system
+- **Health Monitoring**: Real-time system and agent health tracking
 
 ## 🏗️ Architecture
 
@@ -122,6 +135,7 @@ The system implements a four-stage GraphRAG pipeline:
 
 ### Usage
 
+#### CLI Interface
 1. **Start the GraphRAG chat interface**
    ```bash
    python -m src.cli.graph_rag_cli chat
@@ -137,14 +151,66 @@ The system implements a four-stage GraphRAG pipeline:
    python -m src.cli.graph_rag_cli test
    ```
 
+#### API Server
+1. **Start the API server**
+   ```bash
+   python -m src.api.main
+   # or
+   uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+2. **Access the API documentation**
+   - Open http://localhost:8000/docs for interactive Swagger UI
+   - Or http://localhost:8000/redoc for ReDoc documentation
+
+3. **Example API usage**
+   ```bash
+   # General query (auto-routes to appropriate agents)
+   curl -X POST "http://localhost:8000/query" \
+        -H "Content-Type: application/json" \
+        -d '{"query": "Summarize this article about machine learning"}'
+   
+   # Code analysis
+   curl -X POST "http://localhost:8000/code/analyze" \
+        -H "Content-Type: application/json" \
+        -d '{"code": "def hello():\n    print(\"Hello World\")", "analysis_type": "review"}'
+   
+   # Web scraping
+   curl -X POST "http://localhost:8000/web/scrape" \
+        -H "Content-Type: application/json" \
+        -d '{"urls": ["https://example.com"], "analysis_request": "summarize this content"}'
+   
+   # System status
+   curl "http://localhost:8000/status"
+   ```
+
 ## 💡 Example Queries
 
+### GraphRAG Multi-hop Reasoning
 The system excels at multi-hop reasoning questions:
 
 - **Complex relationships**: "What contribution did the son of Euler's teacher make?"
 - **Family connections**: "Who was the father of Daniel Bernoulli?"
 - **Academic lineage**: "What did Johann Bernoulli's student accomplish?"
 - **Domain expertise**: "How is fluid dynamics related to the Bernoulli family?"
+
+### Multi-Agent Capabilities
+
+#### Summary Agent
+- **Executive Summary**: "Create an executive summary of this quarterly report"
+- **Technical Summary**: "Provide a technical summary of this research paper"
+- **Bullet Points**: "Summarize the key points of this article in bullet format"
+
+#### Code RAG Agent
+- **Code Review**: "Review this Python function for best practices"
+- **Debug Help**: "Help me debug this JavaScript code that's throwing errors"
+- **Code Optimization**: "Optimize this algorithm for better performance"
+- **Security Analysis**: "Analyze this code for security vulnerabilities"
+
+#### Web Scraping Agent
+- **Content Analysis**: "Analyze the content from https://example.com/article"
+- **News Summarization**: "Summarize the latest news from these URLs"
+- **Research Gathering**: "Extract key information from these research papers online"
 
 ## 🔧 Configuration Options
 
@@ -218,17 +284,26 @@ query = "What contribution did the son of Euler's teacher make?"
 
 ```
 src/
-├── agents/
+├── agents/                   # Agent implementations
 │   ├── base_agent.py         # Base agent protocol
-│   └── graph_rag_agent.py    # Main GraphRAG agent
+│   ├── graph_rag_agent.py    # Main GraphRAG agent
+│   ├── summary_agent.py      # Summary generation agent
+│   ├── code_rag_agent.py     # Code analysis agent
+│   ├── web_scraping_agent.py # Web content extraction agent
+│   └── agent_template.py     # Template for creating new agents
+├── api/                      # REST API endpoints
+│   └── main.py              # FastAPI application
 ├── cli/
 │   └── graph_rag_cli.py      # CLI interface
-├── data/
+├── data/                     # Data processing components
 │   ├── milvus_store.py       # Milvus vector store
 │   ├── graph_expansion.py    # Graph traversal logic
 │   ├── llm_reranker.py      # LLM-based reranking
-│   └── triplet_extractor.py  # Knowledge extraction
-├── orchestrator/
+│   ├── triplet_extractor.py  # Knowledge extraction
+│   └── document_processor.py # Document processing utilities
+├── monitoring/               # Performance monitoring
+│   └── agent_monitor.py      # Agent performance tracking
+├── orchestrator/             # Agent orchestration
 │   ├── agent_factory.py      # Agent creation factory
 │   ├── graph_app.py         # Application factory
 │   └── orchestrator.py      # Main orchestrator
@@ -239,10 +314,23 @@ context/                    # Directory for your PDF documents
 
 ### Adding New Features
 
-1. **Custom Agents**: Implement new agents by extending `BaseAgent` protocol
-2. **Custom Extractors**: Implement new triplet extraction methods in `triplet_extractor.py`
-3. **Graph Algorithms**: Extend graph expansion logic in `graph_expansion.py`
-4. **Reranking Strategies**: Add new reranking approaches in `llm_reranker.py`
+#### Creating New Agents
+1. **Use Agent Template**: Copy `src/agents/agent_template.py` and customize it
+2. **Implement Required Methods**: Define `can_handle()` and `retrieve_and_generate()`
+3. **Register Agent**: Add your agent to the orchestrator in `src/api/main.py`
+4. **Add Dependencies**: Update `requirements.txt` if needed
+
+#### Extending Core Features
+1. **Custom Extractors**: Implement new triplet extraction methods in `triplet_extractor.py`
+2. **Graph Algorithms**: Extend graph expansion logic in `graph_expansion.py`
+3. **Reranking Strategies**: Add new reranking approaches in `llm_reranker.py`
+4. **API Endpoints**: Add specialized endpoints in `src/api/main.py`
+
+#### Agent Capabilities
+- **Summary Types**: executive, technical, narrative, bullet_points, abstract
+- **Code Analysis**: review, explain, debug, optimize, refactor, security, test
+- **Web Analysis**: extract, summarize, analyze, fact_check
+- **Monitoring**: Real-time performance tracking and health monitoring
 
 ## 📊 Performance
 

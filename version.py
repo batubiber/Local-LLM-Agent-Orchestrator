@@ -1,25 +1,58 @@
 """
-Versiyon bilgisi
+Version information
 """
 from dataclasses import dataclass
 
 @dataclass
-class VersiyonBilgisi:
+class VersionInfo:
     """
-    Versiyon bilgisi
+    Version information
     """
-    major_versiyon  : int = 0
-    minor_versiyon  : int = 2
-    build_versiyon  : int = 0
-    product_id      : int = 0
+    major_version  : int = 0
+    minor_version  : int = 3
+    build_version  : int = 0
+    product_id     : int = 0
 
     def __str__(self):
-        return f"{self.major_versiyon}.{self.minor_versiyon}.{self.build_versiyon}.{self.product_id}"
+        return f"{self.major_version}.{self.minor_version}.{self.build_version}.{self.product_id}"
 
     def __repr__(self):
         return self.__str__()
 
-# VERSIYON GECMISI
+# VERSION HISTORY
+
+####################################################################
+# Version    : 3.0.0
+# Developers : Batuhan Biber
+# Date       : 27.06.2025
+#
+# Developments:
+# - SummaryAgent - Multi-Type Summary Generation
+#   * Executive, technical, narrative, bullet-point, and abstract summaries
+#   * Intelligent summary type detection
+#   * Full API integration
+# - WebScrapingAgent - Web Scraping and Analysis
+#   * Web page content extraction and analysis
+#   * Multi-URL processing
+#   * Fact-checking and summarization
+# - CodeRAGAgent - Code Analysis and Review
+#   * Code review, debugging, optimization, refactoring, security analysis
+#   * Multi-language support (Python, JavaScript, Java, C++, etc.)
+#   * Test generation capabilities
+# - REST API Layer - Complete API Access
+#   * FastAPI-based REST API with OpenAPI documentation
+#   * Health monitoring and status endpoints
+#   * CORS support for web integration
+# - Agent Template System - Standardized Creation
+#   * Complete template for rapid agent development
+#   * Best practices and examples included
+#   * Integration guidelines
+# - Performance Monitoring - Real-time Tracking
+#   * Success/failure rates, response times, confidence scores
+#   * Agent health monitoring
+#   * Metrics export capabilities
+#
+####################################################################
 
 ####################################################################
 # Version    : 2.0.0

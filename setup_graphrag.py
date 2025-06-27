@@ -4,7 +4,8 @@ Setup script for GraphRAG system with Milvus Vector DB and Azure OpenAI.
 """
 import sys
 from pathlib import Path
-
+import subprocess
+import spacy
 
 def create_env_file():
     """Create .env file with configuration template."""
@@ -35,15 +36,15 @@ TEMPERATURE=0.0
 # Use LLM for triplet extraction (true) or rule-based extraction (false)
 USE_LLM_EXTRACTION=true
 """
-    
+
     env_path = Path(".env")
     if env_path.exists():
         print("⚠️  .env file already exists. Skipping creation.")
         return False
-    
-    with open(env_path, "w") as f:
+
+    with open(env_path, "w", encoding="utf-8") as f:
         f.write(env_content)
-    
+
     print("✅ Created .env file with configuration template")
     return True
 
@@ -52,11 +53,11 @@ def create_context_directory():
     """Create context directory for documents."""
     context_dir = Path("context")
     context_dir.mkdir(exist_ok=True)
-    
+
     # Create a sample file with instructions
     sample_file = context_dir / "README.txt"
     if not sample_file.exists():
-        with open(sample_file, "w") as f:
+        with open(sample_file, "w", encoding="utf-8") as f:
             f.write("""GraphRAG Context Directory
 ========================
 
@@ -81,7 +82,7 @@ For best results:
 - Academic papers, biographical texts, and technical documentation work well
 - The system excels at questions like "What contribution did X's student make?"
 """)
-    
+
     print(f"✅ Created context directory: {context_dir}")
     return True
 
@@ -89,18 +90,15 @@ For best results:
 def check_dependencies():
     """Check if required dependencies are installed."""
     try:
-        import spacy
-        
         # Verify spaCy model
         try:
-            nlp = spacy.load("en_core_web_sm")
-            print("✅ spaCy model verified")
+            _ = spacy.load("en_core_web_sm")
+            print("✅ spaCy model verified (already installed)")
         except OSError:
-            print("📥 Downloading spaCy model...")
-            import subprocess
-            subprocess.run(["uv", "pip", "install", "en-core-web-sm@https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.2/en_core_web_sm-3.7.2-py3-none-any.whl"], check=True)
-            print("✅ spaCy model downloaded successfully")
-        
+            print("📥 spaCy model 'en_core_web_sm' not found. Installing...")
+            subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"], check=True)
+            print("✅ spaCy model downloaded and installed successfully")
+
         print("✅ Core dependencies are installed")
         return True
     except ImportError as e:
@@ -114,30 +112,30 @@ def print_setup_instructions():
     print("\n" + "="*60)
     print("🚀 GraphRAG System Setup Complete!")
     print("="*60)
-    
+
     print("\n📋 Next Steps:")
     print("1. Edit the .env file with your credentials:")
     print("   - Get Milvus URI and token from Zilliz Cloud")
     print("   - Add your Azure OpenAI endpoint and API key")
-    
+
     print("\n2. Add PDF documents to the context/ directory")
-    
+
     print("\n3. Start the GraphRAG system:")
     print("   python -m src.cli.graph_rag_cli chat")
-    
+
     print("\n4. Try example queries:")
     print("   - What contribution did the son of Euler's teacher make?")
     print("   - How are Daniel Bernoulli and fluid dynamics related?")
-    
+
     print("\n📚 Additional Commands:")
     print("   python -m src.cli.graph_rag_cli info     # System information")
     print("   python -m src.cli.graph_rag_cli test     # Run test queries")
-    
+
     print("\n🔧 Configuration:")
     print("   - Azure OpenAI is used for triplet extraction and reasoning")
     print("   - Use 'compare <query>' in chat to compare with naive RAG")
     print("   - Adjust temperature and other settings in .env file")
-    
+
     print("\n📖 Documentation:")
     print("   - See README.md for detailed instructions")
     print("   - Check .env file for configuration options")
@@ -148,28 +146,27 @@ def main():
     """Main setup function."""
     print("🔧 Setting up GraphRAG System with Azure OpenAI")
     print("=" * 50)
-    
+
     # Check if we're in the right directory
     if not Path("pyproject.toml").exists():
         print("❌ Please run this script from the project root directory")
         sys.exit(1)
-    
+
     # Check dependencies
     if not check_dependencies():
         print("\n💡 Install dependencies using: uv pip install -r requirements.txt")
         return
-    
+
     # Create configuration files and directories
     env_created = create_env_file()
     create_context_directory()
-    
+
     # Print instructions
     print_setup_instructions()
-    
+
     if env_created:
         print("\n⚠️  IMPORTANT: Edit the .env file with your Azure OpenAI and Milvus credentials before running!")
 
 
 if __name__ == "__main__":
     main()
- 
