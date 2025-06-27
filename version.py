@@ -10,7 +10,7 @@ class VersionInfo:
     """
     major_version  : int = 0
     minor_version  : int = 3
-    build_version  : int = 0
+    build_version  : int = 1
     product_id     : int = 0
 
     def __str__(self):
@@ -20,6 +20,17 @@ class VersionInfo:
         return self.__str__()
 
 # VERSION HISTORY
+
+####################################################################
+# Version    : 3.1.0
+# Developers : Batuhan Biber
+# Date       : 27.06.2025
+#
+# Developments:
+# - The search_entities method now splits queries into batches of 10
+#   or fewer due to the nq limit of Milvus.
+#
+####################################################################
 
 ####################################################################
 # Version    : 3.0.0

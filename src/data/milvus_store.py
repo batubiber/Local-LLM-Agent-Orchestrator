@@ -149,20 +149,35 @@ class MilvusGraphStore:
             )
     
     def search_entities(self, query_texts: List[str], top_k: int = 5) -> List[List[Dict]]:
-        """Search for similar entities."""
+        """Search for similar entities, batching requests to respect Milvus nq limit (max 10)."""
         query_embeddings = [
             self.embedding_model.encode(query_text).tolist() 
             for query_text in query_texts
         ]
+        #########################################################
+        # This code below is the original code, but it is not working because of the nq limit of Milvus.
+        # So we are using the batching approach to respect the nq limit.
+        # results = self.client.search(
+        #     collection_name=self.entity_collection,
+        #     data=query_embeddings,
+        #     limit=top_k,
+        #     output_fields=["id", "text"],
+        # )
+        # return results
+        #########################################################
         
-        results = self.client.search(
-            collection_name=self.entity_collection,
-            data=query_embeddings,
-            limit=top_k,
-            output_fields=["id", "text"],
-        )
-        
-        return results
+        BATCH_SIZE = 10  # Milvus nq limit
+        all_results = []
+        for i in range(0, len(query_embeddings), BATCH_SIZE):
+            batch_embeddings = query_embeddings[i:i+BATCH_SIZE]
+            batch_results = self.client.search(
+                collection_name=self.entity_collection,
+                data=batch_embeddings,
+                limit=top_k,
+                output_fields=["id", "text"],
+            )
+            all_results.extend(batch_results)
+        return all_results
     
     def search_relations(self, query_text: str, top_k: int = 5) -> List[Dict]:
         """Search for similar relations."""
