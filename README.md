@@ -212,6 +212,105 @@ The system excels at multi-hop reasoning questions:
 - **News Summarization**: "Summarize the latest news from these URLs"
 - **Research Gathering**: "Extract key information from these research papers online"
 
+### Persistent Memory System (NEW!)
+
+The system now includes a comprehensive memory system that maintains context across sessions:
+
+#### Key Features
+- **User Profiles**: Personalized settings and preferences
+- **Contexts**: Organize work into projects or topics
+- **Conversation History**: Full history with search capabilities
+- **Cross-Session Memory**: Continue conversations across sessions
+- **Memory Search**: Find information from past conversations
+- **Usage Analytics**: Track agent usage and statistics
+
+#### Memory API Endpoints
+
+1. **User Management**
+   ```bash
+   # Set up user profile
+   curl -X POST "http://localhost:8000/users/set" \
+        -H "Content-Type: application/json" \
+        -d '{"user_id": "john_doe", "name": "John Doe", "email": "john@example.com"}'
+   ```
+
+2. **Context Management**
+   ```bash
+   # Create a new context
+   curl -X POST "http://localhost:8000/contexts" \
+        -H "Content-Type: application/json" \
+        -H "X-User-ID: john_doe" \
+        -d '{"name": "ML Research", "description": "Machine learning research project"}'
+   
+   # List contexts
+   curl "http://localhost:8000/contexts" -H "X-User-ID: john_doe"
+   
+   # Switch context
+   curl -X PUT "http://localhost:8000/contexts/1/activate" -H "X-User-ID: john_doe"
+   ```
+
+3. **Conversation Management**
+   ```bash
+   # List conversations
+   curl "http://localhost:8000/conversations" -H "X-User-ID: john_doe"
+   
+   # Get conversation history
+   curl "http://localhost:8000/conversations/1" -H "X-User-ID: john_doe"
+   
+   # Resume conversation
+   curl -X POST "http://localhost:8000/conversations/1/resume" -H "X-User-ID: john_doe"
+   ```
+
+4. **Memory Search**
+   ```bash
+   # Search through memory
+   curl -X POST "http://localhost:8000/memory/search" \
+        -H "Content-Type: application/json" \
+        -H "X-User-ID: john_doe" \
+        -d '{"query": "machine learning algorithms", "limit": 10}'
+   ```
+
+5. **Statistics & Export**
+   ```bash
+   # Get usage statistics
+   curl "http://localhost:8000/memory/statistics" -H "X-User-ID: john_doe"
+   
+   # Export all data
+   curl -X POST "http://localhost:8000/memory/export" -H "X-User-ID: john_doe"
+   ```
+
+#### Using Memory in Queries
+
+When making queries, include the `X-User-ID` header to enable memory:
+
+```bash
+curl -X POST "http://localhost:8000/query" \
+     -H "Content-Type: application/json" \
+     -H "X-User-ID: john_doe" \
+     -d '{"query": "What is gradient descent?"}'
+```
+
+The system will automatically:
+- Save the conversation to memory
+- Use previous context for better responses
+- Track which agents were used
+- Store token usage and processing time
+
+#### Memory Demo
+
+Run the interactive demo to see the memory system in action:
+
+```bash
+python examples/memory_demo.py
+```
+
+This demonstrates:
+- Setting up user profiles
+- Creating and switching contexts
+- Processing queries with memory
+- Searching through past conversations
+- Viewing usage statistics
+
 ## 🔧 Configuration Options
 
 ### CLI Options

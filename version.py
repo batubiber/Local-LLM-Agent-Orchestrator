@@ -10,7 +10,7 @@ class VersionInfo:
     """
     major_version  : int = 0
     minor_version  : int = 3
-    build_version  : int = 1
+    build_version  : int = 2
     product_id     : int = 0
 
     def __str__(self):
@@ -20,6 +20,23 @@ class VersionInfo:
         return self.__str__()
 
 # VERSION HISTORY
+
+####################################################################
+# Version    : 3.2.0
+# Developers : Batuhan Biber
+# Date       : 30.06.2025
+#
+# Developments:
+# - The system now includes a comprehensive memory system that
+#   maintains context across sessions.
+# - User Profiles: Personalized settings and preferences
+# - Contexts: Organize work into projects or topics
+# - Conversation History: Full history with search capabilities
+# - Cross-Session Memory: Continue conversations across sessions
+# - Memory Search: Find information from past conversations
+# - Usage Analytics: Track agent usage and statistics
+#
+####################################################################
 
 ####################################################################
 # Version    : 3.1.0

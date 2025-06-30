@@ -5,6 +5,7 @@ description = "Local LLM Agent Orchestrator with RAG and Multi-Agent capabilitie
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiohttp>=3.12.13",
     "beautifulsoup4>=4.13.4",
     "fastapi>=0.115.12",
     "langchain>=0.3.25",
